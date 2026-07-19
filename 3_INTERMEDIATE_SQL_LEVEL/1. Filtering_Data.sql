@@ -98,13 +98,18 @@ FROM customers
 WHERE score >= 100 AND score <=500;
 
 /* ============================================================================== 
-   SET FILTERING - IN
+   SET FILTERING - IN, NOT IN
 =============================================================================== */
 
 -- Retrieve all customers from either Kenya or the South Africa.
 SELECT *
 FROM customers
 WHERE country IN ('Kenya','South Africa');
+
+SELECT *
+FROM customers
+WHERE country NOT IN ('Kenya','South Africa');
+
 
 /* ============================================================================== 
    PATTERN MATCHING - LIKE
