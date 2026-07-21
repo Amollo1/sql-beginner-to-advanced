@@ -116,7 +116,7 @@ FROM customers AS C
 LEFT JOIN orders AS O
 ON C.id = O.customer_id
 
-UNION
+UNION 
 
 SELECT
     C.id,
@@ -160,6 +160,48 @@ FROM customers AS c
 LEFT JOIN orders AS o
 ON c.id = o.customer_id
 WHERE o.customer_id IS NOT NULL;
+
+-- FULL ANTI JOIN
+/* Find customers without orders and orders without customers 
+FULL JOIN is not supported in MySQL DataBase Mangement System.
+FULL JOIN will produce a syntax error because MySQL doesn't recognize FULL JOIN.
+
+How to achieve the same result in MySQL
+
+To find all unmatched records (customers without orders and orders without customers),
+use a combination of LEFT JOIN, RIGHT JOIN, and UNION:
+*/
+
+SELECT
+    c.id,
+    c.first_name,
+    o.order_id,
+    o.customer_id,
+    o.sales
+FROM customers AS c
+LEFT JOIN orders AS o
+ON c.id = o.customer_id
+WHERE o.customer_id IS NULL
+
+UNION
+
+SELECT
+    c.id,
+    c.first_name,
+    o.order_id,
+    o.customer_id,
+    o.sales
+FROM customers AS c
+RIGHT JOIN orders AS o
+ON c.id = o.customer_id
+WHERE c.id IS NULL;
+
+/*
+Why the above works
+The LEFT JOIN returns all customers. The WHERE o.customer_id IS NULL keeps only customers who have no matching orders.
+The RIGHT JOIN returns all orders. The WHERE c.id IS NULL keeps only orders that have no matching customer.
+UNION combines the two result sets into the equivalent of a FULL JOIN with unmatched rows.
+*/
 
 -- CROSS JOIN
 /* Generate all possible combinations of customers and orders */
