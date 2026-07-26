@@ -162,3 +162,39 @@ SELECT
     LastName
 FROM Salesdb.Customers;
 
+/* TASK 5: 
+   Combine order data from Orders and OrdersArchive into one report without duplicates 
+*/
+SELECT
+    'Orders' AS SourceTable,
+    OrderID,
+    ProductID,
+    CustomerID,
+    SalesPersonID,
+    OrderDate,
+    ShipDate,
+    OrderStatus,
+    ShipAddress,
+    BillAddress,
+    Quantity,
+    Sales,
+    CreationTime
+FROM salesdb.Orders
+UNION
+SELECT
+    'orders_archive' AS SourceTable,
+    OrderID,
+    ProductID,
+    CustomerID,
+    SalesPersonID,
+    OrderDate,
+    ShipDate,
+    OrderStatus,
+    ShipAddress,
+    BillAddress,
+    Quantity,
+    Sales,
+    CreationTime
+FROM salesdb.orders_archive
+ORDER BY OrderID;
+
