@@ -13,10 +13,9 @@
      4. LAST_DAY
      5. Date Parts
      6. FORMAT
-     7. CONVERT
-     8. CAST
-     9. DATEADD / DATEDIFF
-    10. ISDATE
+     7. CAST
+     8. DATE_ADD() / DATE_SUB() / TIMESTAMPDIFF / LAG() + DATEDIFF()
+	 9. ISDATE
 ===============================================================================
 */
 
@@ -213,13 +212,142 @@ SELECT
 DATE_FORMAT(OrderDate, '%b  %Y') AS OrderDate,
 COUNT(*) AS Total_Orders
 FROM salesdb.orders
-GROUP BY DATE_FORMAT(OrderDate, '%b  %Y')
+GROUP BY DATE_FORMAT(OrderDate, '%b  %Y');
 
 /* ==============================================================================
-   CONVERT()
+   CAST()
 ===============================================================================*/
 
 /* TASK 12:
-   Demonstrate conversion using CONVERT.
+   Demonstrate conversion using CAST.
 */
+SELECT
+    CAST('123' AS SIGNED) AS `String to Int CONVERT`,
+    CAST('2025-08-20' AS DATE) AS `String to Date CONVERT`,
+    CreationTime,
+    CAST(CreationTime AS DATE) AS `Datetime to Date CONVERT`,
+    DATE_FORMAT(CreationTime, '%m/%d/%Y') AS `USA Std. Style`,
+    DATE_FORMAT(CreationTime, '%d.%m.%Y') AS `EURO Std. Style`
+FROM Salesdb.Orders;
 
+SELECT
+    CAST('123' AS SIGNED) AS `String to Int`,
+    CAST(123 AS CHAR) AS `Int to String`,
+    CAST('2025-08-20' AS DATE) AS `String to Date`,
+    CAST('2025-08-20' AS DATETIME) AS `String to Date time`,
+    CreationTime,
+    CAST(CreationTime AS DATE) AS `Datetime to Date`
+FROM Salesdb.Orders;
+
+/* ==============================================================================
+   DATE_ADD() / DATE_SUB()
+============================================================================== */
+
+/* TASK 14:
+   Perform date arithmetic on OrderDate.
+*/
+SELECT
+    OrderID,
+    OrderDate AS `Order Date`,
+    DATE_SUB(OrderDate, INTERVAL 15 DAY) AS `Ten Days Before`,
+    DATE_ADD(OrderDate, INTERVAL 6 MONTH) AS `Three Months Later`,
+    DATE_ADD(OrderDate, INTERVAL 5 YEAR) AS `Two Years Later`
+FROM salesdb.Orders;
+
+/* ==============================================================================
+   TIMESTAMPDIFF()
+===============================================================================*/
+
+/* TASK 15:
+   Calculate the age of employees.
+*/
+SELECT
+	EmployeeID,
+	concat(firstname,'  ',lastname) AS full_name,
+    BirthDate,
+    TIMESTAMPDIFF(YEAR, BirthDate, CURDATE()) AS Age
+FROM Salesdb.Employees;
+
+/* ==============================================================================
+   DATEDIFF()
+===============================================================================*/
+
+/* TASK 16:
+   Find the average shipping duration in days for each month.
+*/
+SELECT
+    MONTH(OrderDate) AS OrderMonth,
+    AVG(DATEDIFF(ShipDate, OrderDate)) AS AvgShip
+FROM Salesdb.Orders
+GROUP BY MONTH(OrderDate);
+
+SELECT
+    MONTHNAME(OrderDate) AS OrderMonth,
+    AVG(DATEDIFF(ShipDate, OrderDate)) AS AvgShip
+FROM Salesdb.Orders
+GROUP BY MONTH(OrderDate), MONTHNAME(OrderDate)
+ORDER BY MONTH(OrderDate);
+
+SELECT
+    MONTH(OrderDate) AS MonthNo,
+    MONTHNAME(OrderDate) AS MonthName,
+    AVG(DATEDIFF(ShipDate, OrderDate)) AS AvgShip
+FROM Salesdb.Orders
+GROUP BY
+    MONTH(OrderDate),
+    MONTHNAME(OrderDate)
+ORDER BY MonthNo;
+
+SELECT
+    DATE_FORMAT(OrderDate, '%b') AS OrderMonth,
+    AVG(DATEDIFF(ShipDate, OrderDate)) AS AvgShip
+FROM Salesdb.Orders
+GROUP BY
+    MONTH(OrderDate),
+    DATE_FORMAT(OrderDate, '%b')
+ORDER BY MONTH(OrderDate);
+
+/* ==============================================================================
+   LAG() + DATEDIFF()
+===============================================================================*/
+
+/* TASK 17:
+   Time Gap Analysis: Find the number of days between each order and the previous order.
+*/
+SELECT
+    OrderID,
+    OrderDate AS Current_Order_Date,
+    LAG(OrderDate) OVER (ORDER BY OrderDate) AS Previous_Order_Date,
+    DATEDIFF(
+        OrderDate,
+        LAG(OrderDate) OVER (ORDER BY OrderDate)
+    ) AS Number_Of_Days
+FROM Salesdb.Orders;
+
+/* ==============================================================================
+   STR_TO_DATE() - Equivalent to ISDATE()
+===============================================================================*/
+
+/* TASK 18:
+   Validate OrderDate and convert valid dates.
+*/
+SELECT
+    OrderDate,
+    CASE
+        WHEN STR_TO_DATE(OrderDate, '%Y-%m-%d') IS NOT NULL THEN 1
+        ELSE 0
+    END AS IsValidDate,
+    CASE
+        WHEN STR_TO_DATE(OrderDate, '%Y-%m-%d') IS NOT NULL
+            THEN STR_TO_DATE(OrderDate, '%Y-%m-%d')
+        ELSE '9999-01-01'
+    END AS NewOrderDate
+FROM (
+    SELECT '2025-08-20' AS OrderDate
+    UNION ALL
+    SELECT '2025-08-21'
+    UNION ALL
+    SELECT '2025-08-23'
+    UNION ALL
+    SELECT '2025-08'
+) AS t;
